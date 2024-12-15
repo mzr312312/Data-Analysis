@@ -11,6 +11,7 @@ def calculate_diff_values(file_path):
     diff_sum = df.groupby('tagCode')['diff'].sum().round(2)  # 保留两位小数
     return diff_sum.to_dict()
 
+diff_values = calculate_diff_values(rf'../Time_Series_Data_Processing/data_outputs/combined_cut_df.pkl')
 
 # 读取时间范围
 def calculate_time_range(file_path):
@@ -29,7 +30,7 @@ def load_data(file_path, diff_values):
     return nodes
 
 
-diff_values = calculate_diff_values(rf'../Time_Series_Data_Processing/data_outputs/combined_cut_df.pkl')
+
 
 
 def collect_tree_data(tree_widget, parent_item=None, level=0):
@@ -263,7 +264,7 @@ def load_data(file_path):
 
 
 if __name__ == '__main__':
-    file_path = '../Time_Series_Data_Processing/data_inputs/电表结构化清单和名称映射.xlsx'
+    file_path = '../Time_Series_Data_Processing/data_inputs/节点父节点映射.xlsx'
     nodes = load_data(file_path)
 
     app = QApplication(sys.argv)
