@@ -21,22 +21,17 @@ if %errorlevel% neq 0 (
 )
 
 :: 拉取远程更改并与本地合并
-git pull origin main
+git pull origin master
 if %errorlevel% neq 0 (
     echo Error while pulling remote changes, please resolve the conflict manually
     exit /b 1
 )
 
 :: 推送本地提交到远程仓库
-git push origin main
+git push origin master
 if %errorlevel% neq 0 (
     echo An error occurred while pushing to the remote repository. Check the network connection or remote repository status
     exit /b 1
 ) else (
     echo Synchronization succeeded
 )
-
-:: 5秒倒计时
-echo The script will exit after 5 seconds...
-timeout /t 5 /nobreak >nul
-exit
