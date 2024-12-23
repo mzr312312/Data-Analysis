@@ -1,6 +1,6 @@
 @echo off
 :: 设置仓库目录
-set REPO_DIR='E:\Data-Analysis'
+set REPO_DIR="E:\Data-Analysis"
 
 cd /d %REPO_DIR%
 echo start to Synchronize the code...
