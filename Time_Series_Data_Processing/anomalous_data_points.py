@@ -12,17 +12,17 @@ py.init_notebook_mode(connected=True)
 
 # %run get_data_from_api.py
 # 从.pkl文件读取原始数据
-result_df = pd.read_pickle('result_df.pkl')
-print(result_df)
+combined_cut_df = pd.read_pickle(rf'../Time_Series_Data_Processing/data_outputs/combined_cut_df.pkl')
+print(combined_cut_df)
 
 # 获取不重复的tagCode并存储在列表中
-tag_codes = result_df['tagCode'].unique().tolist()
+tag_codes = combined_cut_df['tagCode'].unique().tolist()
 
 # 创建一个ExcelWriter对象
 with pd.ExcelWriter('tag_code_analysis.xlsx') as writer:
     for tag_code in tag_codes:
         # 生成对应tagCode的数据框
-        tag_df = result_df[result_df['tagCode'] == tag_code].copy()
+        tag_df = combined_cut_df[combined_cut_df['tagCode'] == tag_code].copy()
 
         # 读取tagValue，新增一个diff列
         tag_df['diff'] = tag_df['tagValue'].diff().fillna(0).astype(float)

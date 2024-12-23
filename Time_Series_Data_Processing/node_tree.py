@@ -10,9 +10,9 @@ def calculate_diff_values(file_path):
     df = pd.read_pickle(file_path)
     diff_sum = df.groupby('tagCode')['diff'].sum().round(2)  # 保留两位小数
     return diff_sum.to_dict()
-
+# 计算出的diff_values是一个字典，key为tagCode（数据点编码），value为diff的聚合值（也就是某一个数据点在整个时间段内的总耗电量）
 diff_values = calculate_diff_values(rf'../Time_Series_Data_Processing/data_outputs/combined_cut_df.pkl')
-
+print("diff_values:", diff_values)
 # 读取时间范围
 def calculate_time_range(file_path):
     df = pd.read_pickle(file_path)
@@ -230,8 +230,7 @@ class TreeViewApp(QMainWindow):
         if self.display_diff_format:
             display_text = f"{tree['node_name']} : {tree['diff'] if tree['diff'] is not None else '无'}"
         else:
-            display_text = f"{tree['node_name']} (ID: {tree['node_id']}) : {tree['diff']:.2f}KWH" if tree[
-                                                                                                         'diff'] is not None else f"{tree['node_name']} (ID: {tree['node_id']}) : 无"
+            display_text = f"{tree['node_name']} (ID: {tree['node_id']}) : {tree['diff']:.2f}KWH" if tree['diff'] is not None else f"{tree['node_name']} (ID: {tree['node_id']}) : 无"
 
         item = QTreeWidgetItem(parent_widget, [display_text])
         for child in tree['children']:

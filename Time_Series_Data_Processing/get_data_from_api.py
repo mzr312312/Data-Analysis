@@ -6,48 +6,25 @@ import json
 import sys
 from tagCodes.tagcode_generator import generate_tagcodes
 
-
-# 记录输出日志到文件
-class Logger:
-    def __init__(self, filename):
-        self.terminal = sys.stdout
-        self.log = open(filename, "w")
-
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
-
-    def flush(self):
-        # this flush method is needed for python 3 compatibility.
-        # this handles the flush command by doing nothing.
-        # you might want to specify some extra behavior here.
-        pass
-
-
-filepath_output_log = f"../Time_Series_Data_Processing/data_outputs/output_log.txt"
-sys.stdout = Logger(filepath_output_log)
-
-print('This will be written to output_log.txt and the console')
-
-# 设置请求的 URL
-url = 'http://10.86.6.3:8081/japrojecttag/timeseries'
-
-# tagCodes = [
-#     "SJ-B-23-1-Efp-0001_AE01_F",
-#     "SJ-B-23-9-Hvm-0056_AE01_F",
-#     "SJ-B-23-9-Hvm-0001_AE01_F",
-#     "SJ-B-23-9-Etf-0003_AE01_F",
-#     "SJ-B-23-9-Edm-0003_AE01_F",
-# ]
-
-tagCodes = generate_tagcodes()
-
-# 设置时间范围
-start_time = "2024-11-28 00:00:00"
-end_time = "2024-11-28 00:03:00"
-granularity_minutes = 1
-# 用于存储所有 DataFrame 的列表
-all_data_frames = []
+"""
+功能说明：
+该脚本用于从指定的 API 获取时间序列数据，然后对数据进行处理和分析，最后将结果保存为 Excel 文件和 JSON 格式。主要功能如下：
+1. 从 API 获取时间序列数据：通过指定的起始时间和结束时间，以及 tagCodes，向 API 发送请求以获取数据。
+2. 数据转换：对获取的数据进行转换，包括将布尔值转换为 1 或 0，将数值转换为浮点数，确保数据格式的一致性。
+3. 数据合并：将多个 tagCodes 的数据合并为一个 DataFrame，方便后续分析。
+4. 数据处理：
+   - 按照 tagCode 和时间升序排列数据。
+   - 使用 pandas 的 resample 方法，按照指定的粒度（以分钟为单位）对数据进行重采样，删除多余的数据行。
+   - 计算每个粒度时间窗口的 tagValue 差值，并将结果添加到新的列中。
+5. 数据保存：将处理后的数据保存为 Excel 文件和 pickle 文件，以便后续使用和分析。
+6. diff 值的提取：将每个 tagCode 在时间序列中的 diff 值提取到一个字典中，并转换为 JSON 格式，便于进一步使用或传递给其他模块。
+使用说明：
+- 确保安装所需的库，主要包括 requests、pandas 和 json。
+- 根据需求修改请求的 URL、时间范围、粒度（granularity_minutes）和批量请求大小（batch_size）等配置项。
+注意事项：
+- 在运行脚本之前，请确保网络连接正常（如不在内网，需要配置代理），以便能够成功访问 API。
+- 输出文件的路径可以根据实际需要进行调整。
+"""
 
 
 # 处理 tagValue 列的转换函数，将布尔值转换为 1 或 0，将数值转换为浮点数
@@ -71,58 +48,58 @@ def convert_tag_value(value):
     return float(value)  # 默认将其他情况转换为 float
 
 
-# 遍历每个 tagCode
-for tagCode in tagCodes:
-    # 设置请求的数据
+# 设置请求的 URL
+url = 'http://10.86.6.3:8081/japrojecttag/timeseries'
+
+# 设置时间范围
+start_time = "2024-12-16 07:00:00"
+end_time = "2024-12-16 09:03:00"
+granularity_minutes = 10
+tagCodes = generate_tagcodes()  # 从tagcode_generator.py 导入的函数，生成tagCodes列表
+# 用于存储所有 DataFrame 的列表
+all_data_frames = []
+# 设置批量请求的大小
+batch_size = 1
+
+# 循环遍历 tagCodes，分批请求数据
+for i in range(0, len(tagCodes), batch_size):
+    batch_tagCodes = tagCodes[i:i + batch_size]
+    # 创建请求体
     data = {
-        "tagCode": tagCode,
+        "tagCodes": batch_tagCodes,
         "startTime": start_time,
         "endTime": end_time
     }
-
     # 发送 POST 请求
     response = requests.post(url, json=data)
-
     print(response)
-    # 检查请求是否成功
+    # 检查请求是否成功，如果不成功，打印错误信息并继续下一次循环
     if response.status_code == 200:
         # 解析 JSON 数据
         json_data = response.json()
+        print(json_data)
+        # 检查 'data' 是否存在且是列表
+        if json_data and 'data' in json_data and isinstance(json_data['data'], list):
+            # 遍历数据列表
+            for item in json_data['data']:
+                timeseries_data = item.get('timeseries')
+                # 确保 timeseries_data 不是 None
+                if timeseries_data is not None:
+                    # 将数据转换为 DataFrame
+                    df = pd.DataFrame(timeseries_data)
+                    # 使用转换函数处理 tagValue 列（如果是布尔值，则转换为 1 或 0，如果是数值，则转换为浮点数）
+                    df['tagValue'] = df['tagValue'].apply(convert_tag_value)  # 使用自定义函数处理 tagValue
+                    # 转换 time 列为 datetime
+                    df['time'] = pd.to_datetime(df['time'])
+                    # 添加 tagCode 列
+                    df['tagCode'] = item['tagCode']  # 使用当前 item 的 tagCode
 
-        # 检查 'data' 和 'timeseries' 是否存在
-        if json_data and 'data' in json_data and json_data['data'] is not None:
-            timeseries_data = json_data['data'].get('timeseries')
-
-            # 确保 timeseries_data 不是 None
-            if timeseries_data is not None:
-                # 将数据转换为 DataFrame
-                df = pd.DataFrame(timeseries_data)
-                # 使用转换函数处理 tagValue 列（如果是布尔值，则转换为 1 或 0，如果是数值，则转换为浮点数）
-                df['tagValue'] = df['tagValue'].apply(convert_tag_value)  # 使用自定义函数处理 tagValue
-                # 转换 time 列为 datetime
-                df['time'] = pd.to_datetime(df['time'])
-                # 添加 tagCode 列
-                df['tagCode'] = tagCode
-
-                # 如果有时间列，进行拆分
-                if 'time' in df.columns:
-                    df['time'] = pd.to_datetime(df['time'])  # 转换时间为时间格式
-                    df['年'] = df['time'].dt.year
-                    df['月'] = df['time'].dt.month
-                    df['日'] = df['time'].dt.day
-                    df['时'] = df['time'].dt.hour
-                    df['分'] = df['time'].dt.minute
-
-                # 转换 tagvalue 为数字类型
-                # if 'tagvalue' in df.columns:
-                #     df['tagvalue'] = pd.to_numeric(df['tagvalue'], errors='coerce')  # 转换为数值类型
-
-                # 添加到总的 DataFrame 列表中
-                all_data_frames.append(df)
-            else:
-                print(f"警告: tagCode {tagCode} 的 timeseries 数据为空。")
+                    # 添加到总的 DataFrame 列表中
+                    all_data_frames.append(df)
+                else:
+                    print(f"警告: tagCode {item['tagCode']} 的 timeseries 数据为空。")
         else:
-            print(f"警告: tagCode {tagCode} 的响应格式不正确或数据为空。")
+            print(f"警告: 响应格式不正确或数据为空。")
     else:
         print(f"请求失败，状态码: {response.status_code}, 响应：{response.text}")
 
@@ -146,7 +123,7 @@ else:
 # 1）按照 tagCode 列和 time 列升序排列
 combined_df.sort_values(by=['tagCode', 'time'], inplace=True)
 
-# 2）使用 floor 方法，精确到分钟
+# 2）使用 floor 方法，精确到分钟（删掉秒）
 if not combined_df.empty:
     combined_df['time'] = combined_df['time'].dt.floor('min')
 
