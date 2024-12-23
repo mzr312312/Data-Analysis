@@ -1,8 +1,8 @@
 @echo off
 :: 设置仓库目录
-set REPO_DIR=E:\Data-Analysis
+set REPO_DIR='E:\Data-Analysis'
 
-cd /e %REPO_DIR%
+cd /d %REPO_DIR%
 echo start to Synchronize the code...
 
 :: 添加所有更改到暂存区
