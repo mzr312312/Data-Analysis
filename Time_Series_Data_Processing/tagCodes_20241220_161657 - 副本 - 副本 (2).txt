@@ -1,5 +1,0 @@
-tagCodes = [
-    "SJ-A-23-1-Efp-0001_AE01_F",
-    "SJ-A-23-1-Efp-0002_AE01_F",
-    "SJ-A-23-1-Efp-0003_AE01_F",
-]
