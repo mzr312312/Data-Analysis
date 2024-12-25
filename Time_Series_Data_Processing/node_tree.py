@@ -164,10 +164,10 @@ class TreeViewApp(QMainWindow):
         # 默认显示为 node_name : diff值 的格式
         self.display_diff_format = True
 
-        root_nodes = [node for node in nodes if pd.isna(node['parent_node_id'])]
+        root_nodes = [node for node in nodes if pd.isna(node['parent_node_name'])]
 
         for root in root_nodes:
-            tree = self.build_tree(nodes, root['node_id'])
+            tree = self.build_tree(nodes, root['node_name'])
             self.populate_tree_widget(tree, self.tree_widget)
 
         self.tree_widget.itemSelectionChanged.connect(self.update_diff_total)
@@ -206,22 +206,23 @@ class TreeViewApp(QMainWindow):
         self.start_time_label.setText(f"起始时间: {start_time_str}")
         self.end_time_label.setText(f"结束时间: {end_time_str}")
 
-    def build_tree(self, nodes, node_id=None):
-        current_node = next((node for node in nodes if node['node_id'] == node_id), None)
+    def build_tree(self, nodes, node_name=None):
+        current_node = next((node for node in nodes if node['node_name'] == node_name), None)
         if not current_node:
             return None
 
-        children = [self.build_tree(nodes, child['node_id']) for child in nodes if
-                    child['parent_node_id'] == current_node['node_id']]
+        # 通过 parent_node_name 来获取子节点
+        children = [self.build_tree(nodes, child['node_name']) for child in nodes if
+                    child['parent_node_name'] == current_node['node_name']]
 
-        current_diff = diff_values.get(current_node['node_id'], None)
+        current_diff = diff_values.get(current_node['node_name'], None)  # 如果需要 diff 值，则需要进行相应修改
 
         return {
-            'node_id': current_node['node_id'],
             'node_name': current_node['node_name'],
             'children': children,
             'diff': current_diff
         }
+
 
     def populate_tree_widget(self, tree, parent_widget):
         if tree is None:
@@ -230,7 +231,7 @@ class TreeViewApp(QMainWindow):
         if self.display_diff_format:
             display_text = f"{tree['node_name']} : {tree['diff'] if tree['diff'] is not None else '无'}"
         else:
-            display_text = f"{tree['node_name']} (ID: {tree['node_id']}) : {tree['diff']:.2f}KWH" if tree['diff'] is not None else f"{tree['node_name']} (ID: {tree['node_id']}) : 无"
+            display_text = f"{tree['node_name']} (ID: {tree['node_name']}) : {tree['diff']:.2f}KWH" if tree['diff'] is not None else f"{tree['node_name']} (ID: {tree['node_name']}) : 无"
 
         item = QTreeWidgetItem(parent_widget, [display_text])
         for child in tree['children']:
@@ -251,9 +252,9 @@ class TreeViewApp(QMainWindow):
         self.display_diff_format = not self.display_diff_format
         self.tree_widget.clear()
         root_nodes = [node for node in load_data('../Time_Series_Data_Processing/data_inputs/电表结构化清单和名称映射.xlsx') if
-                      pd.isna(node['parent_node_id'])]
+                      pd.isna(node['parent_node_name'])]
         for root in root_nodes:
-            tree = self.build_tree(load_data('../Time_Series_Data_Processing/data_inputs/电表结构化清单和名称映射.xlsx'), root['node_id'])
+            tree = self.build_tree(load_data('../Time_Series_Data_Processing/data_inputs/电表结构化清单和名称映射.xlsx'), root['node_name'])
             self.populate_tree_widget(tree, self.tree_widget)
 
 
@@ -263,7 +264,7 @@ def load_data(file_path):
 
 
 if __name__ == '__main__':
-    file_path = '../Time_Series_Data_Processing/data_inputs/节点父节点映射.xlsx'
+    file_path = 'data_inputs/节点父节点映射.xlsx'
     nodes = load_data(file_path)
 
     app = QApplication(sys.argv)

@@ -52,14 +52,14 @@ def convert_tag_value(value):
 url = 'http://10.86.6.3:8081/japrojecttag/timeseries'
 
 # 设置时间范围
-start_time = "2024-12-16 07:00:00"
-end_time = "2024-12-16 09:03:00"
+start_time = "2024-11-22 00:00:00"
+end_time = "2024-11-23 00:03:00"
 granularity_minutes = 10
 tagCodes = generate_tagcodes()  # 从tagcode_generator.py 导入的函数，生成tagCodes列表
 # 用于存储所有 DataFrame 的列表
 all_data_frames = []
-# 设置批量请求的大小
-batch_size = 1
+# 设置每次批量请求的数据点数量
+batch_size = 25
 
 # 循环遍历 tagCodes，分批请求数据
 for i in range(0, len(tagCodes), batch_size):
@@ -77,7 +77,8 @@ for i in range(0, len(tagCodes), batch_size):
     if response.status_code == 200:
         # 解析 JSON 数据
         json_data = response.json()
-        print(json_data)
+        print(f"请求成功，响应：{json_data}")
+        # print(json_data)
         # 检查 'data' 是否存在且是列表
         if json_data and 'data' in json_data and isinstance(json_data['data'], list):
             # 遍历数据列表

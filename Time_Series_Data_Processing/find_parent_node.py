@@ -8,7 +8,7 @@ df = pd.read_excel(excel_path)
 result = []
 
 # 从LEVEL5开始，从右向左逐列遍历
-columns = ['LEVEL5', 'LEVEL4', 'LEVEL3', 'LEVEL2', 'LEVEL1']
+columns = ['LEVEL5', 'LEVEL4', 'LEVEL3', 'LEVEL2', 'LEVEL1', 'LEVEL1']
 
 for col in columns:
     for idx, value in enumerate(df[col]):
@@ -26,10 +26,10 @@ for col in columns:
                 parent_node = parent_candidate[0]
                 break
 
-        result.append({'Child Node': child_node, 'Parent Node': parent_node})
+        result.append({'node_name': child_node, 'parent_node_name': parent_node})
 
 # 将结果写入到新的Excel文件中
 result_df = pd.DataFrame(result)
-output_path = rf'../Time_Series_Data_Processing/data_outputs/节点父节点映射.xlsx'
+output_path = rf'../Time_Series_Data_Processing/data_inputs/节点父节点映射.xlsx'
 result_df.to_excel(output_path, index=False)
 
