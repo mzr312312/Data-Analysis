@@ -59,7 +59,7 @@ tagCodes = generate_tagcodes()  # 从tagcode_generator.py 导入的函数，生�
 # 用于存储所有 DataFrame 的列表
 all_data_frames = []
 # 设置每次批量请求的数据点数量
-batch_size = 25
+batch_size = 5
 
 # 循环遍历 tagCodes，分批请求数据
 for i in range(0, len(tagCodes), batch_size):
@@ -181,6 +181,17 @@ for index, row in combined_cut_df.iterrows():
 
     # 将diff值添加到时间戳的字典中
     diff_values[tag_code][timestamp] = diff_value
+
+# 计算diff值之和
+diff_sum = combined_cut_df['diff'].sum()
+
+# 在左上角显示信息
+print("\n" + "="*50)
+print(f"起始时间: {start_time}")
+print(f"截止时间: {end_time}") 
+print(f"重采样密度: {granularity_minutes} 分钟")
+print(f"Diff值之和: {diff_sum:.2f}")
+print("="*50 + "\n")
 
 # 转换为JSON格式
 diff_values_json = json.dumps(diff_values, ensure_ascii=False)
