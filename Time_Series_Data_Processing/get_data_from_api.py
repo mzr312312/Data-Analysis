@@ -52,8 +52,8 @@ def convert_tag_value(value):
 url = 'http://10.86.6.3:8081/japrojecttag/timeseries'
 
 # 设置时间范围
-start_time = "2025-01-05 00:00:00"
-end_time = "2025-01-06 00:03:00"
+start_time = "2025-03-28 00:00:00"
+end_time = "2025-03-28 00:11:00"
 granularity_minutes = 5
 tagCodes = generate_tagcodes()  # 从tagcode_generator.py 导入的函数，生成tagCodes列表
 # 用于存储所有 DataFrame 的列表
